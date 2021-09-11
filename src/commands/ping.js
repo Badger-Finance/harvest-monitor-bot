@@ -1,19 +1,29 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { Interface } from "@ethersproject/abi";
 import { getAddress } from "@ethersproject/address";
+import { Contract } from "@ethersproject/contracts";
+import { EtherscanProvider } from "@ethersproject/providers";
 import fetch from "node-fetch";
 
-import abi from "../contracts/KeeperAccessControl.json";
+import BaseStrategyAbi from "../contracts/BaseStrategy.json";
+import ControllerAbi from "../contracts/Controller.json";
+import KeeperAccessControlAbi from "../contracts/KeeperAccessControl.json";
+import SettV4Abi from "../contracts/SettV4.json";
 import { checkStatus } from "../utils.js";
 
-const getTransactions = async (
-  address = "0x711A339c002386f9db409cA55b6A35a604aB6cF6",
-  startBlock = 0
-) => {
+const KEEPER_ACL = "0x711A339c002386f9db409cA55b6A35a604aB6cF6";
+
+const provider = new EtherscanProvider(null, process.env.ETHERSCAN_TOKEN);
+const keeperAclContract = new Contract(
+  KEEPER_ACL,
+  KeeperAccessControlAbi,
+  provider
+);
+
+const getTransactions = async (startBlock = 0) => {
   const endpoint = "https://api.etherscan.io/api";
   const token = process.env.ETHERSCAN_TOKEN;
   const response = await fetch(
-    `${endpoint}?module=account&action=txlist&sort=desc&address=${address}&startblock=${startBlock}&apikey=${token}`
+    `${endpoint}?module=account&action=txlist&sort=desc&address=${keeperAclContract.address}&startblock=${startBlock}&apikey=${token}`
   );
 
   try {
@@ -28,25 +38,45 @@ const getTransactions = async (
   return data.result;
 };
 
-const getLastHarvestTimes = (
-  txs,
-  keeperAcl = "0x711A339c002386f9db409cA55b6A35a604aB6cF6"
-) => {
-  const iface = new Interface(abi);
-  const times = {};
+const getLatestHarvests = async (txs) => {
+  const strategies = [];
+  const seen = new Set();
   for (const { to, input, timeStamp } of txs) {
-    if (!to || !input || getAddress(to) != getAddress(keeperAcl)) {
+    if (!to || !input || getAddress(to) != keeperAclContract.address) {
       continue;
     }
-    const { args, name } = iface.parseTransaction({ data: input });
+    const { args, name } = keeperAclContract.interface.parseTransaction({
+      data: input,
+    });
     if (
       ["harvest", "harvestNoReturn"].includes(name) &&
-      !(args.strategy in times)
+      !seen.has(args.strategy)
     ) {
-      times[args.strategy] = +timeStamp;
+      seen.add(args.strategy);
+      const strategyContract = new Contract(
+        args.strategy,
+        BaseStrategyAbi,
+        provider
+      );
+      const controllerContract = new Contract(
+        await strategyContract.controller(),
+        ControllerAbi,
+        provider
+      );
+      const vaultContract = new Contract(
+        await controllerContract.vaults(await strategyContract.want()),
+        SettV4Abi,
+        provider
+      );
+      strategies.push({
+        name: await strategyContract.getName(),
+        vault: await vaultContract.name(),
+        address: args.strategy,
+        time: +timeStamp,
+      });
     }
   }
-  return times;
+  return strategies;
 };
 
 export const data = new SlashCommandBuilder()
@@ -60,8 +90,11 @@ export const data = new SlashCommandBuilder()
   );
 
 export const execute = async (interaction) => {
+  await interaction.deferReply();
   const txs = await getTransactions();
-  const times = getLastHarvestTimes(txs);
-  console.log(times);
-  await interaction.reply(interaction.options.getString("input") || "Pong!");
+  const strategies = await getLatestHarvests(txs);
+  console.log(strategies);
+  await interaction.editReply(
+    interaction.options.getString("input") || "Pong!"
+  );
 };
