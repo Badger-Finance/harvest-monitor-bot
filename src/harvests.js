@@ -1,22 +1,14 @@
-import { codeBlock, SlashCommandBuilder } from "@discordjs/builders";
+import { codeBlock, bold, italic } from "@discordjs/builders";
 import { getAddress } from "@ethersproject/address";
 import { Contract } from "@ethersproject/contracts";
 import { EtherscanProvider } from "@ethersproject/providers";
 import AsciiTable from "ascii-table";
-import { fileURLToPath } from "url";
 
-import { HARVEST_FNS, KEEPER_ACL } from "../constants.js";
-import {
-  formatMs,
-  getFileName,
-  getStrategyMetadata,
-  getTransactions,
-} from "../utils.js";
+import { HARVEST_FNS, KEEPER_ACL } from "./constants.js";
+import { formatMs, getStrategyMetadata, getTransactions } from "./utils.js";
 
-import keeperAccessControlAbi from "../contracts/KeeperAccessControl.json";
-import strategyMetadata from "../data/strategy-metadata.json";
-
-const __filename = fileURLToPath(import.meta.url);
+import keeperAccessControlAbi from "./contracts/KeeperAccessControl.json";
+import strategyMetadata from "./data/strategy-metadata.json";
 
 const provider = new EtherscanProvider(null, process.env.ETHERSCAN_TOKEN);
 const keeperAclContract = new Contract(
@@ -63,21 +55,12 @@ const toTable = (rows) => {
   return table.toString();
 };
 
-export const execute = async (interaction) => {
-  await interaction.deferReply();
+export const getHarvestTable = async () => {
   const txs = await getTransactions(keeperAclContract.address);
   const strategyHarvests = await getLatestHarvests(txs, keeperAclContract);
   const table = toTable(strategyHarvests);
-  // console.log(table);
-  await interaction.editReply(codeBlock(table));
+  return (
+    codeBlock(table) +
+    `\n${bold(italic("Last Update:"))} ${italic(new Date().toUTCString())}\n`
+  );
 };
-
-export const data = new SlashCommandBuilder()
-  .setName(getFileName(__filename))
-  .setDescription("Fetch the last harvest times of Badger strategies");
-// .addStringOption((option) =>
-//   option
-//     .setName("input")
-//     .setDescription("The input to echo back")
-//     .setRequired(false)
-// );

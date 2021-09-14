@@ -1,15 +1,11 @@
 import { Contract } from "@ethersproject/contracts";
 import fs from "fs";
 import fetch from "node-fetch";
-import path, { basename, dirname, extname } from "path";
-import { fileURLToPath } from "url";
+import { basename, extname } from "path";
 
 import baseStrategyAbi from "./contracts/BaseStrategy.json";
 import controllerAbi from "./contracts/Controller.json";
 import settV4Abi from "./contracts/SettV4.json";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 export const getFileName = (fpath) => basename(fpath, extname(fpath));
 
@@ -17,15 +13,6 @@ export const writeJson = (fpath, obj) => {
   fs.writeFile(fpath, JSON.stringify(obj, null, 2), (err) => {
     if (err) throw err;
   });
-};
-
-export const loadCommands = async () => {
-  const commandFiles = fs
-    .readdirSync(path.resolve(__dirname, "commands"))
-    .filter((file) => file.endsWith(".js"));
-  return Promise.all(
-    commandFiles.map(async (file) => await import(`./commands/${file}`))
-  );
 };
 
 class HTTPResponseError extends Error {
