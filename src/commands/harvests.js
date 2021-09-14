@@ -6,10 +6,15 @@ import AsciiTable from "ascii-table";
 import { fileURLToPath } from "url";
 
 import { HARVEST_FNS, KEEPER_ACL } from "../constants.js";
-import { getFileName, getTransactions, formatMs } from "../utils.js";
+import {
+  formatMs,
+  getFileName,
+  getStrategyMetadata,
+  getTransactions,
+} from "../utils.js";
 
-import strategyMetadata from "../data/strategy-metadata.json";
 import keeperAccessControlAbi from "../contracts/KeeperAccessControl.json";
+import strategyMetadata from "../data/strategy-metadata.json";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -33,6 +38,12 @@ const getLatestHarvests = async (txs, contract) => {
     if (HARVEST_FNS.includes(name) && !seen.has(args.strategy)) {
       seen.add(args.strategy);
       const now = new Date().getTime();
+      if (!(args.strategy in strategyMetadata)) {
+        strategyMetadata[args.strategy] = await getStrategyMetadata(
+          args.strategy,
+          provider
+        );
+      }
       strategies.push({
         vault: strategyMetadata[args.strategy].vault,
         timeSinceHarvest: formatMs(now - +timeStamp * 1000),

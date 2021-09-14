@@ -1,7 +1,12 @@
+import { Contract } from "@ethersproject/contracts";
 import fs from "fs";
 import fetch from "node-fetch";
 import path, { basename, dirname, extname } from "path";
 import { fileURLToPath } from "url";
+
+import baseStrategyAbi from "./contracts/BaseStrategy.json";
+import controllerAbi from "./contracts/Controller.json";
+import settV4Abi from "./contracts/SettV4.json";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -59,6 +64,26 @@ export const getTransactions = async (address, startBlock = 0) => {
 
   const data = await response.json();
   return data.result;
+};
+
+export const getStrategyMetadata = async (strategy, provider) => {
+  const strategyContract = new Contract(strategy, baseStrategyAbi, provider);
+  const controllerContract = new Contract(
+    await strategyContract.controller(),
+    controllerAbi,
+    provider
+  );
+  const want = await strategyContract.want();
+  const vaultContract = new Contract(
+    await controllerContract.vaults(want),
+    settV4Abi,
+    provider
+  );
+  return {
+    name: await strategyContract.getName(),
+    vault: await vaultContract.name(),
+    want,
+  };
 };
 
 export const formatMs = (ms) => {
