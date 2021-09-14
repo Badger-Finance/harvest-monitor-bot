@@ -26,7 +26,7 @@ const keeperAclContract = new Contract(
 );
 
 const getLatestHarvests = async (txs, contract) => {
-  const strategies = [];
+  const strategyHarvests = [];
   const seen = new Set();
   for (const { to, input, timeStamp } of txs) {
     if (!to || !input || getAddress(to) != contract.address) {
@@ -44,20 +44,21 @@ const getLatestHarvests = async (txs, contract) => {
           provider
         );
       }
-      strategies.push({
-        vault: strategyMetadata[args.strategy].vault,
+      strategyHarvests.push({
+        vaultName: strategyMetadata[args.strategy].vaultName,
+        strategy: args.strategy,
         timeSinceHarvest: formatMs(now - +timeStamp * 1000),
       });
     }
   }
-  return strategies;
+  return strategyHarvests;
 };
 
 const toTable = (rows) => {
   const table = new AsciiTable();
-  table.setHeading("Vault", "Time since Harvest");
-  for (const { vault, timeSinceHarvest } of rows) {
-    table.addRow(vault, timeSinceHarvest);
+  table.setHeading("Vault", "Strategy Address", "Last Harvest");
+  for (const { vaultName, strategy, timeSinceHarvest } of rows) {
+    table.addRow(vaultName, strategy, timeSinceHarvest);
   }
   return table.toString();
 };
@@ -65,8 +66,8 @@ const toTable = (rows) => {
 export const execute = async (interaction) => {
   await interaction.deferReply();
   const txs = await getTransactions(keeperAclContract.address);
-  const strategies = await getLatestHarvests(txs, keeperAclContract);
-  const table = toTable(strategies);
+  const strategyHarvests = await getLatestHarvests(txs, keeperAclContract);
+  const table = toTable(strategyHarvests);
   // console.log(table);
   await interaction.editReply(codeBlock(table));
 };

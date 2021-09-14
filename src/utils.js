@@ -79,9 +79,14 @@ export const getStrategyMetadata = async (strategy, provider) => {
     settV4Abi,
     provider
   );
+  const nameFull = await strategyContract.getName();
+  const vaultNameFull = await vaultContract.name();
   return {
-    name: await strategyContract.getName(),
-    vault: await vaultContract.name(),
+    name: nameFull.replace("Strategy", ""),
+    nameFull,
+    vaultName: vaultNameFull.replace("Badger Sett ", ""),
+    vaultNameFull,
+    vault: vaultContract.address,
     want,
   };
 };
@@ -90,7 +95,12 @@ export const formatMs = (ms) => {
   const s = 1000;
   const m = s * 60;
   const h = m * 60;
+  const d = h * 24;
   const msAbs = Math.abs(ms);
+  if (msAbs >= 3 * d) {
+    // Show days if more than 3 days
+    return Math.round(ms / d) + "d";
+  }
   if (msAbs >= h) {
     return Math.round(ms / h) + "h";
   }
