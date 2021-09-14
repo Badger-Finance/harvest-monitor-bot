@@ -1,39 +1,28 @@
-import { Client, Collection, Intents } from "discord.js";
+import { Client, Intents } from "discord.js";
 
-import { loadCommands } from "./utils.js";
+import { GUILD_ID, CHANNEL_ID } from "./constants.js";
+import { getHarvestTable } from "./harvests.js";
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
-const setCommands = async () => {
-  const commands = await loadCommands();
-  client.commands = new Collection();
-  commands.forEach((command) => {
-    client.commands.set(command.data.name, command);
-  });
-};
-
-await setCommands();
-
-client.once("ready", () => {
-  console.log("Ready!");
-});
-
-client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isCommand()) return;
-
-  const command = client.commands.get(interaction.commandName);
-
-  if (!command) return;
-
+client.once("ready", async () => {
+  console.log("Running...");
   try {
-    await command.execute(interaction);
+    const guild = client.guilds.cache.get(GUILD_ID);
+    const channel = guild.channels.cache.get(CHANNEL_ID);
+    const payload = await getHarvestTable();
+    const pinnedMessages = await channel.messages.fetchPinned();
+    const message = await pinnedMessages.last();
+    if (message) {
+      await message.edit(payload);
+    } else {
+      await channel.send(payload);
+    }
   } catch (error) {
     console.error(error);
-    return interaction.reply({
-      content: "There was an error while executing this command!",
-      ephemeral: true,
-    });
   }
+  console.log("Done!");
+  client.destroy();
 });
 
 client.login(process.env.BOT_TOKEN);

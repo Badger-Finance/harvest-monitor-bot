@@ -4,11 +4,7 @@ This bot can be used to monitor strategy harvests done using the [KeeperAccessCo
 
 ## Usage
 
-Add the bot to a discord server and run the folowing command:
-
-```
-/harvests
-```
+Set-up a cron job and add bot to a discord server.
 
 ## Set-up instructions
 
@@ -26,13 +22,7 @@ yarn
 yarn fetch
 ```
 
-4. Activate discord commands
-
-```
-yarn deploy
-```
-
-5. Start bot
+5. Run the following as part of a cron job
 
 ```
 yarn start

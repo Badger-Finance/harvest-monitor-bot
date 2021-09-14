@@ -30,7 +30,6 @@
   },
   "scripts": {
     "start": "node --experimental-json-modules --require dotenv/config .",
-    "deploy": "node --experimental-json-modules --require dotenv/config src/scripts/deploy-commands.js",
     "fetch": "node --experimental-json-modules --require dotenv/config src/scripts/fetch-strategy-metadata.js",
     "format": "prettier --write src/**/*.js",
     "lint": "eslint .",
