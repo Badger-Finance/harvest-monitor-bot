@@ -9,7 +9,15 @@ import settV4Abi from "./contracts/SettV4.json";
 
 export const getFileName = (fpath) => basename(fpath, extname(fpath));
 
-export const writeJson = (fpath, obj) => {
+export const writeJson = (fpath, obj, sort = true) => {
+  if (sort) {
+    obj = Object.keys(obj)
+      .sort()
+      .reduce((res, key) => {
+        res[key] = obj[key];
+        return res;
+      }, {});
+  }
   fs.writeFile(fpath, JSON.stringify(obj, null, 2), (err) => {
     if (err) throw err;
   });

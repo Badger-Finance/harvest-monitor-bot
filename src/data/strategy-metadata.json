@@ -1,35 +1,11 @@
 {
-  "0x826048381d65a65DAa51342C51d464428d301896": {
-    "name": "CvxCrvHelper",
-    "nameFull": "StrategyCvxCrvHelper",
-    "vaultName": "Convex CRV",
-    "vaultNameFull": "Badger Sett Convex CRV",
-    "vault": "0x2B5455aac8d64C14786c3a29858E43b5945819C0",
-    "want": "0x62B9c7356A2Dc64a1969e19C23e4f579F9810Aa7"
-  },
-  "0xf4146A176b09C664978e03d28d07Db4431525dAd": {
-    "name": "SushiLpOptimizer",
-    "nameFull": "StrategySushiLpOptimizer",
-    "vaultName": "SushiSwap LP Token",
-    "vaultNameFull": "Badger Sett SushiSwap LP Token",
-    "vault": "0x8a8FFec8f4A0C8c9585Da95D9D97e8Cd6de273DE",
-    "want": "0x18d98D452072Ac2EB7b74ce3DB723374360539f1"
-  },
-  "0xBCee2c6CfA7A4e29892c3665f464Be5536F16D95": {
-    "name": "CvxHelper",
-    "nameFull": "StrategyCvxHelper",
-    "vaultName": "Convex Token",
-    "vaultNameFull": "Badger Sett Convex Token",
-    "vault": "0x53C8E199eb2Cb7c01543C137078a038937a68E40",
-    "want": "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B"
-  },
-  "0xFf26f400e57bf726822EaCBB64Fa1c52F1F27988": {
+  "0x05eC4356e1acd89CC2d16adC7415c8c95E736AC1": {
     "name": "ConvexStakingOptimizer",
     "nameFull": "StrategyConvexStakingOptimizer",
-    "vaultName": "Curve.fi hBTC/wBTC",
-    "vaultNameFull": "Badger Sett Curve.fi hBTC/wBTC",
-    "vault": "0x8c76970747afd5398e958bDfadA4cf0B9FcA16c4",
-    "want": "0xb19059ebb43466C323583928285a49f558E572Fd"
+    "vaultName": "Curve.fi USD-BTC-ETH",
+    "vaultNameFull": "Badger Sett Curve.fi USD-BTC-ETH",
+    "vault": "0xBE08Ef12e4a553666291E9fFC24fCCFd354F2Dd2",
+    "want": "0xcA3d75aC011BF5aD07a98d02f18225F9bD9A6BDF"
   },
   "0x1C1fD689103bbFD701b3B7D41A3807F12814033D": {
     "name": "ConvexStakingOptimizer",
@@ -38,14 +14,6 @@
     "vaultNameFull": "Badger Sett Curve.fi pBTC/sbtcCRV",
     "vault": "0x55912D0Cf83B75c492E761932ABc4DB4a5CB1b17",
     "want": "0xDE5331AC4B3630f94853Ff322B66407e0D6331E8"
-  },
-  "0x522Bb024C339A12be1a47229546f288C40b62d29": {
-    "name": "ConvexStakingOptimizer",
-    "nameFull": "StrategyConvexStakingOptimizer",
-    "vaultName": "Curve.fi tBTC/sbtcCrv",
-    "vaultNameFull": "Badger Sett Curve.fi tBTC/sbtcCrv",
-    "vault": "0xb9D076fDe463dbc9f915E5392F807315Bf940334",
-    "want": "0x64eda51d3Ad40D56b9dFc5554E06F94e1Dd786Fd"
   },
   "0x2bB864cDB4856AB2d148C5CA52Dd7cCEC126d138": {
     "name": "ConvexStakingOptimizer",
@@ -71,13 +39,21 @@
     "vault": "0x5Dce29e92b1b939F8E8C60DcF15BDE82A85be4a9",
     "want": "0x410e3E86ef427e30B9235497143881f717d93c2A"
   },
-  "0xf1DED284E891943b3e9c657D7fC376b86164FFc2": {
+  "0x522Bb024C339A12be1a47229546f288C40b62d29": {
     "name": "ConvexStakingOptimizer",
     "nameFull": "StrategyConvexStakingOptimizer",
-    "vaultName": "Curve.fi renBTC/wBTC/sBTC",
-    "vaultNameFull": "Badger Sett Curve.fi renBTC/wBTC/sBTC",
-    "vault": "0xd04c48A53c111300aD41190D63681ed3dAd998eC",
-    "want": "0x075b1bb99792c9E1041bA13afEf80C91a1e70fB3"
+    "vaultName": "Curve.fi tBTC/sbtcCrv",
+    "vaultNameFull": "Badger Sett Curve.fi tBTC/sbtcCrv",
+    "vault": "0xb9D076fDe463dbc9f915E5392F807315Bf940334",
+    "want": "0x64eda51d3Ad40D56b9dFc5554E06F94e1Dd786Fd"
+  },
+  "0x54D06A0E1cE55a7a60Ee175AbCeaC7e363f603f3": {
+    "name": "MStableVault",
+    "nameFull": "StrategyMStableVault",
+    "vaultName": "mBTC/HBTC Feeder Pool",
+    "vaultNameFull": "Badger Sett mBTC/HBTC Feeder Pool",
+    "vault": "0x26B8efa69603537AC8ab55768b6740b67664D518",
+    "want": "0x48c59199Da51B7E30Ea200a74Ea07974e62C4bA7"
   },
   "0x6582A5b139Fc1C6360846efDc4440d51AaD4Df7B": {
     "name": "ConvexStakingOptimizer",
@@ -87,12 +63,52 @@
     "vault": "0x6dEf55d2e18486B9dDfaA075bc4e4EE0B28c1545",
     "want": "0x49849C98ae39Fff122806C06791Fa73784FB3675"
   },
-  "0x05eC4356e1acd89CC2d16adC7415c8c95E736AC1": {
+  "0x826048381d65a65DAa51342C51d464428d301896": {
+    "name": "CvxCrvHelper",
+    "nameFull": "StrategyCvxCrvHelper",
+    "vaultName": "Convex CRV",
+    "vaultNameFull": "Badger Sett Convex CRV",
+    "vault": "0x2B5455aac8d64C14786c3a29858E43b5945819C0",
+    "want": "0x62B9c7356A2Dc64a1969e19C23e4f579F9810Aa7"
+  },
+  "0xBCee2c6CfA7A4e29892c3665f464Be5536F16D95": {
+    "name": "CvxHelper",
+    "nameFull": "StrategyCvxHelper",
+    "vaultName": "Convex Token",
+    "vaultNameFull": "Badger Sett Convex Token",
+    "vault": "0x53C8E199eb2Cb7c01543C137078a038937a68E40",
+    "want": "0x4e3FBD56CD56c3e72c1403e103b45Db9da5B9D2B"
+  },
+  "0xFf26f400e57bf726822EaCBB64Fa1c52F1F27988": {
     "name": "ConvexStakingOptimizer",
     "nameFull": "StrategyConvexStakingOptimizer",
-    "vaultName": "Curve.fi USD-BTC-ETH",
-    "vaultNameFull": "Badger Sett Curve.fi USD-BTC-ETH",
-    "vault": "0xBE08Ef12e4a553666291E9fFC24fCCFd354F2Dd2",
-    "want": "0xcA3d75aC011BF5aD07a98d02f18225F9bD9A6BDF"
+    "vaultName": "Curve.fi hBTC/wBTC",
+    "vaultNameFull": "Badger Sett Curve.fi hBTC/wBTC",
+    "vault": "0x8c76970747afd5398e958bDfadA4cf0B9FcA16c4",
+    "want": "0xb19059ebb43466C323583928285a49f558E572Fd"
+  },
+  "0xd409C506742b7f76f164909025Ab29A47e06d30A": {
+    "name": "MStableVault",
+    "nameFull": "StrategyMStableVault",
+    "vaultName": "Interest bearing mStable BTC",
+    "vaultNameFull": "Badger Sett Interest bearing mStable BTC",
+    "vault": "0x599D92B453C010b1050d31C364f6ee17E819f193",
+    "want": "0x17d8CBB6Bce8cEE970a4027d1198F6700A7a6c24"
+  },
+  "0xf1DED284E891943b3e9c657D7fC376b86164FFc2": {
+    "name": "ConvexStakingOptimizer",
+    "nameFull": "StrategyConvexStakingOptimizer",
+    "vaultName": "Curve.fi renBTC/wBTC/sBTC",
+    "vaultNameFull": "Badger Sett Curve.fi renBTC/wBTC/sBTC",
+    "vault": "0xd04c48A53c111300aD41190D63681ed3dAd998eC",
+    "want": "0x075b1bb99792c9E1041bA13afEf80C91a1e70fB3"
+  },
+  "0xf4146A176b09C664978e03d28d07Db4431525dAd": {
+    "name": "SushiLpOptimizer",
+    "nameFull": "StrategySushiLpOptimizer",
+    "vaultName": "SushiSwap LP Token",
+    "vaultNameFull": "Badger Sett SushiSwap LP Token",
+    "vault": "0x8a8FFec8f4A0C8c9585Da95D9D97e8Cd6de273DE",
+    "want": "0x18d98D452072Ac2EB7b74ce3DB723374360539f1"
   }
 }
