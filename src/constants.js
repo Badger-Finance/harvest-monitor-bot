@@ -1,7 +1,7 @@
 // Discord variables
 export const CLIENT_ID = "885785028058034246";
-export const GUILD_ID = "871757294080258169";
-export const CHANNEL_ID = "887382640620089384";
+export const GUILD_ID = "785315893960900629";
+export const CHANNEL_ID = "890654519938134057";
 
 export const KEEPER_ACL = "0x711A339c002386f9db409cA55b6A35a604aB6cF6";
 export const STRATEGY_BLACKLIST = [
