@@ -4,7 +4,7 @@ import { Contract } from "@ethersproject/contracts";
 import { EtherscanProvider } from "@ethersproject/providers";
 import AsciiTable from "ascii-table";
 
-import { HARVEST_FNS, KEEPER_ACL } from "./constants.js";
+import { HARVEST_FNS, KEEPER_ACL, STRATEGY_BLACKLIST } from "./constants.js";
 import { formatMs, getStrategyMetadata, getTransactions } from "./utils.js";
 
 import keeperAccessControlAbi from "./contracts/KeeperAccessControl.json";
@@ -19,7 +19,7 @@ const keeperAclContract = new Contract(
 
 const getLatestHarvests = async (txs, contract) => {
   const strategyHarvests = [];
-  const seen = new Set();
+  const seen = new Set(STRATEGY_BLACKLIST);
   for (const { to, input, timeStamp } of txs) {
     if (!to || !input || getAddress(to) != contract.address) {
       continue;
@@ -38,7 +38,6 @@ const getLatestHarvests = async (txs, contract) => {
       }
       strategyHarvests.push({
         vaultName: strategyMetadata[args.strategy].vaultName,
-        strategy: args.strategy,
         timeSinceHarvest: formatMs(now - +timeStamp * 1000),
       });
     }
@@ -48,9 +47,9 @@ const getLatestHarvests = async (txs, contract) => {
 
 const toTable = (rows) => {
   const table = new AsciiTable();
-  table.setHeading("Vault", "Strategy Address", "Last Harvest");
-  for (const { vaultName, strategy, timeSinceHarvest } of rows) {
-    table.addRow(vaultName, strategy, timeSinceHarvest);
+  table.setHeading("Vault", "Last Harvest");
+  for (const { vaultName, timeSinceHarvest } of rows) {
+    table.addRow(vaultName, timeSinceHarvest);
   }
   return table.toString();
 };
