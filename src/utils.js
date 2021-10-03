@@ -3,6 +3,7 @@ import fs from "fs";
 import fetch from "node-fetch";
 import { basename, extname } from "path";
 
+import { CHAIN_CONFIG } from "./constants.js";
 import baseStrategyAbi from "./contracts/BaseStrategy.json";
 import controllerAbi from "./contracts/Controller.json";
 import settV4Abi from "./contracts/SettV4.json";
@@ -42,12 +43,12 @@ const checkStatus = (response) => {
   }
 };
 
-export const getTransactions = async (address, startBlock = 0) => {
-  const endpoint = "https://api.etherscan.io/api";
-  const token = process.env.ETHERSCAN_TOKEN;
-  const response = await fetch(
-    `${endpoint}?module=account&action=txlist&sort=desc&address=${address}&startblock=${startBlock}&apikey=${token}`
-  );
+export const getTransactions = async (address, chainId, startBlock = 0) => {
+  const endpoint = CHAIN_CONFIG[chainId].api;
+  const token = CHAIN_CONFIG[chainId].apiToken;
+  const query = `${endpoint}?module=account&action=txlist&sort=desc&address=${address}&startblock=${startBlock}&apikey=${token}`;
+
+  const response = await fetch(query);
 
   try {
     checkStatus(response);

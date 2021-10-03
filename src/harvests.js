@@ -1,27 +1,28 @@
 import { codeBlock, bold, italic } from "@discordjs/builders";
 import { getAddress } from "@ethersproject/address";
 import { Contract } from "@ethersproject/contracts";
-import { EtherscanProvider } from "@ethersproject/providers";
 import AsciiTable from "ascii-table";
 
-import { HARVEST_FNS, KEEPER_ACL, STRATEGY_BLACKLIST } from "./constants.js";
+import { CHAIN_CONFIG, HARVEST_FNS } from "./constants.js";
+import { InfuraProvider } from "./providers.js";
 import { formatMs, getStrategyMetadata, getTransactions } from "./utils.js";
 
 import keeperAccessControlAbi from "./contracts/KeeperAccessControl.json";
-import strategyMetadata from "./data/strategy-metadata.json";
+import STRATEGY_METADATA from "./data/strategy-metadata.json";
 
-const provider = new EtherscanProvider(null, process.env.ETHERSCAN_TOKEN);
-const keeperAclContract = new Contract(
-  KEEPER_ACL,
-  keeperAccessControlAbi,
-  provider
-);
-
-const getLatestHarvests = async (txs, contract) => {
+const getLatestHarvests = async (
+  txs,
+  keeperAcl,
+  provider,
+  blacklistedStrategies,
+  strategyMetadata = {}
+) => {
   const strategyHarvests = [];
-  const seen = new Set(STRATEGY_BLACKLIST);
+  const seen = new Set(blacklistedStrategies);
+  const contract = new Contract(keeperAcl, keeperAccessControlAbi, provider);
+
   for (const { to, input, timeStamp } of txs) {
-    if (!to || !input || getAddress(to) != contract.address) {
+    if (!to || !input || getAddress(to) != getAddress(contract.address)) {
       continue;
     }
     const { args, name } = contract.interface.parseTransaction({
@@ -45,8 +46,8 @@ const getLatestHarvests = async (txs, contract) => {
   return strategyHarvests;
 };
 
-const toTable = (rows) => {
-  const table = new AsciiTable();
+const toTable = (title, rows) => {
+  const table = new AsciiTable(title);
   table.setHeading("Vault", "Last Harvest");
   for (const { vaultName, timeSinceHarvest } of rows) {
     table.addRow(vaultName, timeSinceHarvest);
@@ -54,12 +55,31 @@ const toTable = (rows) => {
   return table.toString();
 };
 
-export const getHarvestTable = async () => {
-  const txs = await getTransactions(keeperAclContract.address);
-  const strategyHarvests = await getLatestHarvests(txs, keeperAclContract);
-  const table = toTable(strategyHarvests);
+export const getHarvestTables = async (chainIds) => {
+  const tables = await Promise.all(
+    chainIds.map(async (chainId) => {
+      const chainConfig = CHAIN_CONFIG[chainId];
+      const provider = new InfuraProvider(
+        {
+          name: chainConfig.name,
+          chainId,
+        },
+        process.env.INFURA_PROJECT_ID
+      );
+
+      const txs = await getTransactions(chainConfig.keeperAcl, chainId);
+      const strategyHarvests = await getLatestHarvests(
+        txs,
+        chainConfig.keeperAcl,
+        provider,
+        chainConfig.blacklistedStrategies || [],
+        STRATEGY_METADATA[chainId]
+      );
+      return codeBlock(toTable(chainConfig.displayName, strategyHarvests));
+    })
+  );
   return (
-    codeBlock(table) +
+    tables.join("\n") +
     `\n${bold(italic("Last Update:"))} ${italic(new Date().toUTCString())}\n`
   );
 };
