@@ -3,6 +3,10 @@ name: Run bot
 on:
   schedule:
     - cron: "50 * * * *"
+  push:
+    branches:
+    - main
+  workflow_dispatch:
 
 jobs:
   build:
