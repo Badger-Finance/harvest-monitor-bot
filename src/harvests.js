@@ -1,62 +1,126 @@
 import { codeBlock, bold, italic } from "@discordjs/builders";
 import { getAddress } from "@ethersproject/address";
 import { Contract } from "@ethersproject/contracts";
+import { Interface } from "@ethersproject/abi";
+
 import AsciiTable from "ascii-table";
 
 import { CHAIN_CONFIG, HARVEST_FNS } from "./constants.js";
 import { InfuraProvider } from "./providers.js";
-import { formatMs, getStrategyMetadata, getTransactions } from "./utils.js";
+import {
+  formatCurrency,
+  formatMs,
+  getPoolName,
+  getPoolTVL,
+  getStrategyMetadata,
+  getTransactions,
+} from "./utils.js";
 
 import keeperAccessControlAbi from "./contracts/KeeperAccessControl.json";
 import STRATEGY_METADATA from "./data/strategy-metadata.json";
 
-const getLatestHarvests = async (
+const filterLatestHarvestTxs = async (
   txs,
   keeperAcl,
   provider,
-  blacklistedStrategies,
-  strategyMetadata = {}
+  blacklistedStrategies
 ) => {
-  const strategyHarvests = [];
+  const filteredTxs = [];
   const seen = new Set(blacklistedStrategies);
   const contract = new Contract(keeperAcl, keeperAccessControlAbi, provider);
 
-  for (const { to, input, timeStamp } of txs) {
-    if (!to || !input || getAddress(to) != getAddress(contract.address)) {
+  for (const tx of txs) {
+    if (
+      !tx.to ||
+      !tx.input ||
+      getAddress(tx.to) != getAddress(contract.address)
+    ) {
       continue;
     }
     const { args, name } = contract.interface.parseTransaction({
-      data: input,
+      data: tx.input,
     });
     if (HARVEST_FNS.includes(name) && !seen.has(args.strategy)) {
       seen.add(args.strategy);
-      const now = new Date().getTime();
-      if (!(args.strategy in strategyMetadata)) {
-        strategyMetadata[args.strategy] = await getStrategyMetadata(
-          args.strategy,
-          provider
-        );
-      }
-      strategyHarvests.push({
-        vaultName: strategyMetadata[args.strategy].vaultName,
-        timeSinceHarvest: formatMs(now - +timeStamp * 1000),
-      });
+      filteredTxs.push(tx);
     }
+  }
+  return filteredTxs;
+};
+
+const getHarvestSwapPools = async (txs, provider, chainId) => {
+  const poolsSet = new Set();
+
+  // TODO: Add Uni-V3, Curve swap events
+  const iface = new Interface([
+    "event Swap(address indexed sender, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out, address indexed to)",
+  ]);
+  for (const { blockHash, hash } of txs) {
+    const filter = {
+      topics: iface.encodeFilterTopics("Swap", []),
+      blockHash,
+    };
+
+    const events = await provider.getLogs(filter);
+    const filteredEvents = events.filter((e) => e.transactionHash === hash);
+    for (const { address } of filteredEvents) {
+      poolsSet.add(address);
+    }
+  }
+  const pools = [];
+  for (const pool of poolsSet) {
+    const name = await getPoolName(pool, provider);
+    const tvl = await getPoolTVL(pool, provider, chainId);
+    pools.push({
+      address: pool,
+      name,
+      tvl,
+      tvlFormatted: formatCurrency(tvl),
+    });
+  }
+  return pools.sort((p1, p2) => p1.tvl - p2.tvl);
+};
+
+const getHarvestData = async (
+  txs,
+  keeperAcl,
+  provider,
+  strategyMetadata = {}
+) => {
+  const strategyHarvests = [];
+  const contract = new Contract(keeperAcl, keeperAccessControlAbi, provider);
+
+  for (const { input, timeStamp } of txs) {
+    const { args } = contract.interface.parseTransaction({
+      data: input,
+    });
+    const now = new Date().getTime();
+    if (!(args.strategy in strategyMetadata)) {
+      strategyMetadata[args.strategy] = await getStrategyMetadata(
+        args.strategy,
+        provider
+      );
+    }
+    strategyHarvests.push({
+      vaultName: strategyMetadata[args.strategy].vaultName,
+      timeSinceHarvest: formatMs(now - +timeStamp * 1000),
+    });
   }
   return strategyHarvests;
 };
 
-const toTable = (title, rows) => {
+const toTable = (title, columnNames, rows) => {
   const table = new AsciiTable(title);
-  table.setHeading("Vault", "Last Harvest");
-  for (const { vaultName, timeSinceHarvest } of rows) {
-    table.addRow(vaultName, timeSinceHarvest);
+  table.setHeading(...columnNames);
+  for (const row of rows) {
+    table.addRow(...row);
   }
   return table.toString();
 };
 
+// TODO: Move pools to a different script
 export const getHarvestTables = async (chainIds) => {
-  const tables = await Promise.all(
+  const chainTables = await Promise.all(
     chainIds.map(async (chainId) => {
       const chainConfig = CHAIN_CONFIG[chainId];
       const provider = new InfuraProvider(
@@ -67,19 +131,60 @@ export const getHarvestTables = async (chainIds) => {
         process.env.INFURA_PROJECT_ID
       );
 
+      // TODO: This is temporary till all strats emit a Harvest event
+      //       Use an event filter when the event is added
+      // const strategyContract = new Contract(
+      //   args.strategy,
+      //   baseStrategyAbi,
+      //   provider
+      // );
+      // const eventFilter = strategyContract.filters.Harvest();
+      // const currentBlock = await provider.getBlockNumber();
+      // const events = await strategyContract.queryFilter(
+      //   eventFilter,
+      //   currentBlock - 90000
+      // );
+
       const txs = await getTransactions(chainConfig.keeperAcl, chainId);
-      const strategyHarvests = await getLatestHarvests(
+      const filteredTxs = await filterLatestHarvestTxs(
         txs,
         chainConfig.keeperAcl,
         provider,
-        chainConfig.blacklistedStrategies || [],
+        chainConfig.blacklistedStrategies || []
+      );
+      const pools = await getHarvestSwapPools(filteredTxs, provider, chainId);
+      const strategyHarvests = await getHarvestData(
+        filteredTxs,
+        chainConfig.keeperAcl,
+        provider,
         STRATEGY_METADATA[chainId]
       );
-      return codeBlock(toTable(chainConfig.displayName, strategyHarvests));
+
+      const poolsTable = toTable(
+        chainConfig.displayName,
+        ["Pool", "TVL"],
+        pools.map(({ name, address, tvlFormatted }) => [name, tvlFormatted])
+      );
+      const harvestTable = toTable(
+        chainConfig.displayName,
+        ["Vault", "Last Harvest"],
+        strategyHarvests.map(({ vaultName, timeSinceHarvest }) => [
+          vaultName,
+          timeSinceHarvest,
+        ])
+      );
+      return {
+        harvests: codeBlock(harvestTable),
+        pools: codeBlock(poolsTable),
+      };
     })
   );
-  return (
-    tables.join("\n") +
-    `\n${bold(italic("Last Update:"))} ${italic(new Date().toUTCString())}\n`
-  );
+  const lastUpdated = `\n${bold(italic("Last Update:"))} ${italic(
+    new Date().toUTCString()
+  )}\n`;
+  return {
+    harvests:
+      chainTables.map((tables) => tables.harvests).join("\n") + lastUpdated,
+    pools: chainTables.map((tables) => tables.pools).join("\n") + lastUpdated,
+  };
 };
