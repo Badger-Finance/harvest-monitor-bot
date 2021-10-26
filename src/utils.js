@@ -12,14 +12,25 @@ import uniswapV2PairAbi from "./contracts/UniswapV2Pair.json";
 
 export const getFileName = (fpath) => basename(fpath, extname(fpath));
 
-export const writeJson = (fpath, obj, sort = true) => {
-  if (sort) {
-    obj = Object.keys(obj)
+const isObject = (obj) =>
+  typeof obj === "object" && !Array.isArray(obj) && obj !== null;
+
+export const sortObject = (obj) => {
+  if (!isObject(obj)) {
+    return obj;
+  } else {
+    return Object.keys(obj)
       .sort()
       .reduce((res, key) => {
-        res[key] = obj[key];
+        res[key] = sortObject(obj[key]);
         return res;
       }, {});
+  }
+};
+
+export const writeJson = (fpath, obj, sort = true) => {
+  if (sort) {
+    obj = sortObject(obj);
   }
   fs.writeFile(fpath, JSON.stringify(obj, null, 2), (err) => {
     if (err) throw err;
