@@ -10,7 +10,7 @@ client.once("ready", async () => {
   const guild = client.guilds.cache.get(GUILD_ID);
   const channel = guild.channels.cache.get(CHANNEL_ID);
   const payloads = await getHarvestTables(Object.values(CHAIN_IDS));
-  // TOOD: Don't actually need pinned messages
+  // TODO: Don't actually need pinned messages
   const pinnedMessages = await channel.messages.fetchPinned();
   const messages = await pinnedMessages.last(2);
   if (messages.length === 0) {

@@ -5,7 +5,8 @@ import { Interface } from "@ethersproject/abi";
 
 import AsciiTable from "ascii-table";
 
-import { CHAIN_CONFIG, HARVEST_FNS } from "./constants.js";
+import { CHAIN_CONFIG, EXCHANGE_CONFIGS, HARVEST_FNS } from "./constants.js";
+import { PriceNotFoundError } from "./errors.js";
 import { InfuraProvider } from "./providers.js";
 import {
   formatCurrency,
@@ -49,34 +50,50 @@ const filterLatestHarvestTxs = async (
 };
 
 const getHarvestSwapPools = async (txs, provider, chainId) => {
-  const poolsSet = new Set();
+  // Empty set for each exchange type
+  const poolSets = Object.fromEntries(
+    Object.keys(EXCHANGE_CONFIGS).map((exchangeType) => [
+      exchangeType,
+      new Set(),
+    ])
+  );
 
-  // TODO: Add Uni-V3, Curve swap events
-  const iface = new Interface([
-    "event Swap(address indexed sender, uint amount0In, uint amount1In, uint amount0Out, uint amount1Out, address indexed to)",
-  ]);
   for (const { blockHash, hash } of txs) {
-    const filter = {
-      topics: iface.encodeFilterTopics("Swap", []),
-      blockHash,
-    };
+    for (const exchangeType in poolSets) {
+      const exchangeConfig = EXCHANGE_CONFIGS[exchangeType];
+      const iface = new Interface(exchangeConfig.abi);
+      const filter = {
+        topics: iface.encodeFilterTopics(exchangeConfig.swapEvent, []),
+        blockHash,
+      };
 
-    const events = await provider.getLogs(filter);
-    const filteredEvents = events.filter((e) => e.transactionHash === hash);
-    for (const { address } of filteredEvents) {
-      poolsSet.add(address);
+      const events = await provider.getLogs(filter);
+      const filteredEvents = events.filter((e) => e.transactionHash === hash);
+      for (const { address } of filteredEvents) {
+        poolSets[exchangeType].add(address);
+      }
     }
   }
   const pools = [];
-  for (const pool of poolsSet) {
-    const name = await getPoolName(pool, provider);
-    const tvl = await getPoolTVL(pool, provider, chainId);
-    pools.push({
-      address: pool,
-      name,
-      tvl,
-      tvlFormatted: formatCurrency(tvl),
-    });
+  for (const exchangeType in poolSets) {
+    for (const pool of poolSets[exchangeType]) {
+      try {
+        const name = await getPoolName(pool, exchangeType, provider);
+        const tvl = await getPoolTVL(pool, exchangeType, provider, chainId);
+        pools.push({
+          address: pool,
+          name,
+          tvl,
+          tvlFormatted: formatCurrency(tvl),
+        });
+      } catch (e) {
+        if (e instanceof PriceNotFoundError) {
+          console.error(e);
+        } else {
+          throw e;
+        }
+      }
+    }
   }
   return pools.sort((p1, p2) => p1.tvl - p2.tvl);
 };
@@ -170,7 +187,7 @@ export const getHarvestTables = async (chainIds) => {
       const poolsTable = toTable(
         chainConfig.displayName,
         ["Pool", "TVL"],
-        pools.map(({ name, address, tvlFormatted }) => [name, tvlFormatted])
+        pools.map(({ name, tvlFormatted }) => [name, tvlFormatted])
       );
       const harvestTable = toTable(
         chainConfig.displayName,

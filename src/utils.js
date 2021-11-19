@@ -3,12 +3,12 @@ import fs from "fs";
 import fetch from "node-fetch";
 import { basename, extname } from "path";
 
-import { CHAIN_CONFIG } from "./constants.js";
+import { CHAIN_CONFIG, EXCHANGE_CONFIGS, EXCHANGE_TYPES } from "./constants.js";
+import { HTTPResponseError, PriceNotFoundError } from "./errors.js";
 import baseStrategyAbi from "./contracts/BaseStrategy.json";
 import controllerAbi from "./contracts/Controller.json";
 import erc20Abi from "./contracts/ERC20.json";
 import settV4Abi from "./contracts/SettV4.json";
-import uniswapV2PairAbi from "./contracts/UniswapV2Pair.json";
 
 export const getFileName = (fpath) => basename(fpath, extname(fpath));
 
@@ -37,23 +37,14 @@ export const writeJson = (fpath, obj, sort = true) => {
   });
 };
 
-class HTTPResponseError extends Error {
-  constructor(response, ...args) {
-    super(
-      `HTTP Error Response: ${response.status} ${response.statusText}`,
-      ...args
-    );
-    this.response = response;
-  }
-}
+const fetchJson = async (url) => {
+  const response = await fetch(url);
 
-const checkStatus = (response) => {
-  if (response.ok) {
-    // response.status >= 200 && response.status < 300
-    return response;
-  } else {
+  if (!response.ok) {
     throw new HTTPResponseError(response);
   }
+
+  return await response.json();
 };
 
 export const getTransactions = async (address, chainId, startBlock = 0) => {
@@ -61,18 +52,37 @@ export const getTransactions = async (address, chainId, startBlock = 0) => {
   const token = CHAIN_CONFIG[chainId].apiToken;
   const query = `${endpoint}?module=account&action=txlist&sort=desc&address=${address}&startblock=${startBlock}&apikey=${token}`;
 
-  const response = await fetch(query);
+  try {
+    const data = await fetchJson(query);
+    return data.result;
+  } catch (error) {
+    if (error instanceof HTTPResponseError) {
+      console.error(error);
+      const errorBody = await error.response.text();
+      console.error(`Error body: ${errorBody}`);
+    } else {
+      throw error;
+    }
+  }
+};
+
+// TODO: Add backup api (api.badger.com)
+export const getTokenPriceFromCoingecko = async (address, chainId) => {
+  const endpoint = "https://api.coingecko.com/api/v3/simple/token_price";
+  const chain = CHAIN_CONFIG[chainId].coingeckoId;
+  const query = `${endpoint}/${chain}?contract_addresses=${address}&vs_currencies=usd`;
 
   try {
-    checkStatus(response);
+    const data = await fetchJson(query);
+    return data[address.toLowerCase()].usd;
   } catch (error) {
-    console.error(error);
-    const errorBody = await error.response.text();
-    console.error(`Error body: ${errorBody}`);
+    if (error instanceof HTTPResponseError) {
+      console.error(error);
+      const errorBody = await error.response.text();
+      console.error(`Error body: ${errorBody}`);
+    }
+    throw new PriceNotFoundError(query);
   }
-
-  const data = await response.json();
-  return data.result;
 };
 
 export const getStrategyMetadata = async (address, provider) => {
@@ -134,60 +144,88 @@ export const formatCurrency = (amount) => {
   }
 };
 
-export const getTokenPriceFromCoingecko = async (address, chainId) => {
-  const endpoint = "https://api.coingecko.com/api/v3/simple/token_price";
-  const chain = CHAIN_CONFIG[chainId].coingeckoId;
-  const query = `${endpoint}/${chain}?contract_addresses=${address}&vs_currencies=usd`;
+// TODO: Cache contract calls to local json
+//       Maybe use classes for this (not sure how that works in js)
+export const getPoolName = async (address, exchangeType, provider) => {
+  const poolContract = new Contract(
+    address,
+    EXCHANGE_CONFIGS[exchangeType].abi,
+    provider
+  );
 
-  const response = await fetch(query);
+  if (exchangeType === EXCHANGE_TYPES.CURVE) {
+    return await poolContract.symbol();
+  } else if (
+    exchangeType === EXCHANGE_TYPES.UNISWAP_V2 ||
+    exchangeType === EXCHANGE_TYPES.UNISWAP_V3
+  ) {
+    const token0 = await poolContract.token0();
+    const token1 = await poolContract.token1();
 
-  try {
-    checkStatus(response);
-  } catch (error) {
-    console.error(error);
-    const errorBody = await error.response.text();
-    console.error(`Error body: ${errorBody}`);
+    const token0Contract = new Contract(token0, erc20Abi, provider);
+    const token0Symbol = await token0Contract.symbol();
+
+    const token1Contract = new Contract(token1, erc20Abi, provider);
+    const token1Symbol = await token1Contract.symbol();
+
+    return `${token0Symbol}-${token1Symbol}`;
+  } else {
+    throw new Error(`Unsupported exchange type: ${exchangeType}`);
+  }
+};
+
+// Uses spot price
+// TODO: Cache contract calls to local json
+//       Maybe use classes for this (not sure how that works in js)
+export const getPoolTVL = async (address, exchangeType, provider, chainId) => {
+  const poolContract = new Contract(
+    address,
+    EXCHANGE_CONFIGS[exchangeType].abi,
+    provider
+  );
+  const tokens = [];
+
+  if (exchangeType === EXCHANGE_TYPES.CURVE) {
+    for (let i = 0; ; i++) {
+      let tokenAddress;
+      try {
+        tokenAddress = await poolContract.coins(i);
+      } catch (error) {
+        break;
+      }
+
+      const tokenContract = new Contract(tokenAddress, erc20Abi, provider);
+      tokens.push({
+        address: tokenAddress,
+        balance: await poolContract.balances(i),
+        decimals: await tokenContract.decimals(),
+        price: await getTokenPriceFromCoingecko(tokenAddress, chainId),
+      });
+    }
+  } else if (
+    exchangeType === EXCHANGE_TYPES.UNISWAP_V2 ||
+    exchangeType === EXCHANGE_TYPES.UNISWAP_V3
+  ) {
+    const tokenAddresses = [
+      await poolContract.token0(),
+      await poolContract.token1(),
+    ];
+
+    for (const tokenAddress of tokenAddresses) {
+      const tokenContract = new Contract(tokenAddress, erc20Abi, provider);
+
+      tokens.push({
+        address: tokenAddress,
+        balance: await tokenContract.balanceOf(address),
+        decimals: await tokenContract.decimals(),
+        price: await getTokenPriceFromCoingecko(tokenAddress, chainId),
+      });
+    }
+  } else {
+    throw new Error(`Unsupported exchange type: ${exchangeType}`);
   }
 
-  const data = await response.json();
-  return data[address.toLowerCase()].usd;
-};
-
-// TODO: Cache constract calls to local json
-export const getPoolName = async (address, provider) => {
-  const pairContract = new Contract(address, uniswapV2PairAbi, provider);
-
-  const token0 = await pairContract.token0();
-  const token1 = await pairContract.token1();
-
-  const token0Contract = new Contract(token0, erc20Abi, provider);
-  const token0Symbol = await token0Contract.symbol();
-
-  const token1Contract = new Contract(token1, erc20Abi, provider);
-  const token1Symbol = await token1Contract.symbol();
-
-  return `${token0Symbol}-${token1Symbol}`;
-};
-
-// TODO: Cache contract calls to local json
-export const getPoolTVL = async (address, provider, chainId) => {
-  const pairContract = new Contract(address, uniswapV2PairAbi, provider);
-
-  const token0 = await pairContract.token0();
-  const token1 = await pairContract.token1();
-
-  const token0Contract = new Contract(token0, erc20Abi, provider);
-  const token0Balance = await token0Contract.balanceOf(address);
-  const token0Decimals = await token0Contract.decimals();
-  const token0Price = await getTokenPriceFromCoingecko(token0, chainId);
-
-  const token1Contract = new Contract(token1, erc20Abi, provider);
-  const token1Balance = await token1Contract.balanceOf(address);
-  const token1Decimals = await token1Contract.decimals();
-  const token1Price = await getTokenPriceFromCoingecko(token1, chainId);
-
-  return (
-    (token0Price * token0Balance) / 10 ** token0Decimals +
-    (token1Price * token1Balance) / 10 ** token1Decimals
-  );
+  return tokens.reduce((acc, token) => {
+    return acc + (token.balance * token.price) / 10 ** token.decimals;
+  }, 0);
 };
