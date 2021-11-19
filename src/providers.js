@@ -5,7 +5,7 @@ const logger = new Logger("providers/5.4.5");
 
 export class InfuraProvider extends BaseInfuraProvider {
   static getUrl(network, apiKey) {
-    network.name = network.name === "mainnet" ? "homestead" : network.name;
+    network.name = network.name === "ethereum" ? "homestead" : network.name;
     try {
       return BaseInfuraProvider.getUrl(network, apiKey);
     } catch (error) {

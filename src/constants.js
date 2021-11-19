@@ -13,18 +13,17 @@ export const HARVEST_FNS = ["harvest", "harvestNoReturn"];
 
 // Ideally enum
 export const CHAIN_IDS = {
-  MAINNET: 1,
+  ETHEREUM: 1,
   ARBITRUM: 42161,
 };
 
 export const CHAIN_CONFIG = {
-  [CHAIN_IDS.MAINNET]: {
-    chainId: CHAIN_IDS.MAINNET,
-    name: "mainnet",
+  [CHAIN_IDS.ETHEREUM]: {
+    chainId: CHAIN_IDS.ETHEREUM,
+    name: "ethereum",
     displayName: "Ethereum",
     api: "https://api.etherscan.io/api",
     apiToken: process.env.ETHERSCAN_TOKEN,
-    coingeckoId: "ethereum",
     keeperAcl: "0x711A339c002386f9db409cA55b6A35a604aB6cF6",
     lookbackBlocks: 64_000, // 10ish days
   },
@@ -34,7 +33,6 @@ export const CHAIN_CONFIG = {
     displayName: "Arbitrum",
     api: "https://api.arbiscan.io/api",
     apiToken: process.env.ETHERSCAN_TOKEN, // No arbiscan token yet
-    coingeckoId: "arbitrum-one",
     keeperAcl: "0x265820f3779f652f2a9857133fdeaf115b87db4b",
   },
 };

@@ -66,15 +66,13 @@ export const getTransactions = async (address, chainId, startBlock = 0) => {
   }
 };
 
-// TODO: Add backup api (api.badger.com)
-export const getTokenPriceFromCoingecko = async (address, chainId) => {
-  const endpoint = "https://api.coingecko.com/api/v3/simple/token_price";
-  const chain = CHAIN_CONFIG[chainId].coingeckoId;
-  const query = `${endpoint}/${chain}?contract_addresses=${address}&vs_currencies=usd`;
+export const getTokenPrice = async (address, chainId, currency = "usd") => {
+  const endpoint = "https://api.badger.com/v2/prices";
+  const query = `${endpoint}?chain=${CHAIN_CONFIG[chainId].name}&currency=${currency}`;
 
   try {
     const data = await fetchJson(query);
-    return data[address.toLowerCase()].usd;
+    return data[address];
   } catch (error) {
     if (error instanceof HTTPResponseError) {
       console.error(error);
@@ -199,7 +197,7 @@ export const getPoolTVL = async (address, exchangeType, provider, chainId) => {
         address: tokenAddress,
         balance: await poolContract.balances(i),
         decimals: await tokenContract.decimals(),
-        price: await getTokenPriceFromCoingecko(tokenAddress, chainId),
+        price: await getTokenPrice(tokenAddress, chainId),
       });
     }
   } else if (
@@ -218,7 +216,7 @@ export const getPoolTVL = async (address, exchangeType, provider, chainId) => {
         address: tokenAddress,
         balance: await tokenContract.balanceOf(address),
         decimals: await tokenContract.decimals(),
-        price: await getTokenPriceFromCoingecko(tokenAddress, chainId),
+        price: await getTokenPrice(tokenAddress, chainId),
       });
     }
   } else {
