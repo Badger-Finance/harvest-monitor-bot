@@ -19,6 +19,7 @@ export const CHAIN_CONFIG = {
     apiToken: process.env.ETHERSCAN_TOKEN,
     coingeckoId: "ethereum",
     keeperAcl: "0x711A339c002386f9db409cA55b6A35a604aB6cF6",
+    lookbackBlocks: 64_000, // 10ish days
     blacklistedStrategies: [
       "0x05eC4356e1acd89CC2d16adC7415c8c95E736AC1", // tricrypto1
     ],

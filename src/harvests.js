@@ -145,7 +145,14 @@ export const getHarvestTables = async (chainIds) => {
       //   currentBlock - 90000
       // );
 
-      const txs = await getTransactions(chainConfig.keeperAcl, chainId);
+      const startBlock = Number.isFinite(chainConfig.lookbackBlocks)
+        ? (await provider.getBlockNumber()) - chainConfig.lookbackBlocks
+        : 0;
+      const txs = await getTransactions(
+        chainConfig.keeperAcl,
+        chainId,
+        startBlock
+      );
       const filteredTxs = await filterLatestHarvestTxs(
         txs,
         chainConfig.keeperAcl,

@@ -43,7 +43,14 @@ const fetchStrategyMetadataForChains = async (chainIds) => {
       process.env.INFURA_PROJECT_ID
     );
 
-    const txs = await getTransactions(chainConfig.keeperAcl, chainId);
+    const startBlock = Number.isFinite(chainConfig.lookbackBlocks)
+      ? (await provider.getBlockNumber()) - chainConfig.lookbackBlocks
+      : 0;
+    const txs = await getTransactions(
+      chainConfig.keeperAcl,
+      chainId,
+      startBlock
+    );
     strategyMetadata[chainId] = await fetchStrategyMetadataForChain(
       txs,
       chainConfig.keeperAcl,
