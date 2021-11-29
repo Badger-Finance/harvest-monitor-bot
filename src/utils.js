@@ -83,6 +83,18 @@ export const getTokenPrice = async (address, chainId, currency = "usd") => {
   }
 };
 
+export const isActiveStrategy = async (address, provider) => {
+  const strategyContract = new Contract(address, baseStrategyAbi, provider);
+  const controllerContract = new Contract(
+    await strategyContract.controller(),
+    controllerAbi,
+    provider
+  );
+  const want = await strategyContract.want();
+  const controllerStrategy = await controllerContract.strategies(want);
+  return address === controllerStrategy;
+};
+
 export const getStrategyMetadata = async (address, provider) => {
   const strategyContract = new Contract(address, baseStrategyAbi, provider);
   const controllerContract = new Contract(

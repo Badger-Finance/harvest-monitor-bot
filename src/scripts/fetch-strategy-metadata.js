@@ -3,7 +3,12 @@ import { Contract } from "@ethersproject/contracts";
 
 import { CHAIN_CONFIG, CHAIN_IDS, HARVEST_FNS } from "../constants.js";
 import { InfuraProvider } from "../providers.js";
-import { getStrategyMetadata, getTransactions, writeJson } from "../utils.js";
+import {
+  getStrategyMetadata,
+  getTransactions,
+  isActiveStrategy,
+  writeJson,
+} from "../utils.js";
 
 import keeperAccessControlAbi from "../contracts/KeeperAccessControl.json";
 
@@ -22,10 +27,12 @@ const fetchStrategyMetadataForChain = async (txs, keeperAcl, provider) => {
     });
     if (HARVEST_FNS.includes(name) && !seen.has(args.strategy)) {
       seen.add(args.strategy);
-      strategyMetadata[args.strategy] = await getStrategyMetadata(
-        args.strategy,
-        provider
-      );
+      if (await isActiveStrategy(args.strategy, provider)) {
+        strategyMetadata[args.strategy] = await getStrategyMetadata(
+          args.strategy,
+          provider
+        );
+      }
     }
   }
   return strategyMetadata;

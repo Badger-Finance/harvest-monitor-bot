@@ -15,6 +15,7 @@ import {
   getPoolTVL,
   getStrategyMetadata,
   getTransactions,
+  isActiveStrategy,
 } from "./utils.js";
 
 import keeperAccessControlAbi from "./contracts/KeeperAccessControl.json";
@@ -43,7 +44,9 @@ const filterLatestHarvestTxs = async (
     });
     if (HARVEST_FNS.includes(name) && !seen.has(args.strategy)) {
       seen.add(args.strategy);
-      filteredTxs.push(tx);
+      if (await isActiveStrategy(args.strategy, provider)) {
+        filteredTxs.push(tx);
+      }
     }
   }
   return filteredTxs;
@@ -121,6 +124,7 @@ const getHarvestData = async (
     strategyHarvests.push({
       vaultName: strategyMetadata[args.strategy].vaultName,
       timeSinceHarvest: formatMs(now - +timeStamp * 1000),
+      strategyAddress: args.strategy,
     });
   }
   return strategyHarvests;
@@ -192,9 +196,9 @@ export const getHarvestTables = async (chainIds) => {
       const harvestTable = toTable(
         chainConfig.displayName,
         ["Vault", "Last Harvest"],
-        strategyHarvests.map(({ vaultName, timeSinceHarvest }) => [
-          vaultName,
-          timeSinceHarvest,
+        strategyHarvests.map((harvest) => [
+          harvest.vaultName,
+          harvest.timeSinceHarvest,
         ])
       );
       return {

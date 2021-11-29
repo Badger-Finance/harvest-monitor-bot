@@ -1,5 +1,13 @@
 {
   "1": {
+    "0x05eC4356e1acd89CC2d16adC7415c8c95E736AC1": {
+      "name": "ConvexStakingOptimizer",
+      "nameFull": "StrategyConvexStakingOptimizer",
+      "vault": "0xBE08Ef12e4a553666291E9fFC24fCCFd354F2Dd2",
+      "vaultName": "Curve.fi USD-BTC-ETH",
+      "vaultNameFull": "Badger Sett Curve.fi USD-BTC-ETH",
+      "want": "0xcA3d75aC011BF5aD07a98d02f18225F9bD9A6BDF"
+    },
     "0x3ff634ce65cDb8CC0D569D6d1697c41aa666cEA9": {
       "name": "veCVX Voting ",
       "nameFull": "veCVX Voting Strategy",
