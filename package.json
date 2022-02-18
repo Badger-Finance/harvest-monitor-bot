@@ -10,24 +10,27 @@
     "node": ">=16.6.0"
   },
   "dependencies": {
-    "@discordjs/builders": "^0.6.0",
-    "@discordjs/rest": "^0.1.0-canary.0",
-    "@ethersproject/abi": "^5.4.1",
-    "@ethersproject/address": "^5.4.0",
-    "@ethersproject/contracts": "^5.4.1",
-    "@ethersproject/providers": "^5.4.5",
+    "@discordjs/builders": "^0.12.0",
+    "@discordjs/rest": "^0.3.0",
+    "@ethersproject/abi": "^5.5.0",
+    "@ethersproject/address": "^5.5.0",
+    "@ethersproject/contracts": "^5.5.0",
+    "@ethersproject/providers": "^5.5.3",
     "ascii-table": "^0.0.9",
-    "discord-api-types": "^0.23.1",
-    "discord.js": "^13.1.0",
-    "dotenv": "^10.0.0",
-    "node-fetch": "^3.0.0"
+    "discord-api-types": "^0.27.2",
+    "discord.js": "^13.6.0",
+    "dotenv": "^16.0.0",
+    "node-fetch": "^3.2.0"
   },
   "devDependencies": {
-    "eslint": "^8.0.0-beta.1",
+    "@babel/core": "^7.17.5",
+    "@babel/eslint-parser": "^7.17.0",
+    "@babel/plugin-syntax-import-assertions": "^7.16.7",
+    "eslint": "^8.9.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "husky": "^7.0.2",
-    "prettier": "^2.4.1"
+    "husky": "^7.0.4",
+    "prettier": "^2.5.1"
   },
   "scripts": {
     "start": "node --experimental-json-modules --require dotenv/config .",
