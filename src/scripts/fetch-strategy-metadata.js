@@ -10,7 +10,7 @@ import {
   writeJson,
 } from "../utils.js";
 
-import keeperAccessControlAbi from "../contracts/KeeperAccessControl.json";
+import keeperAccessControlAbi from "../contracts/KeeperAccessControl.json" assert { type: "json" };
 
 const STRATEGY_METADATA_FILE = "./src/data/strategy-metadata.json";
 

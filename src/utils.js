@@ -5,10 +5,10 @@ import { basename, extname } from "path";
 
 import { CHAIN_CONFIG, EXCHANGE_CONFIGS, EXCHANGE_TYPES } from "./constants.js";
 import { HTTPResponseError, PriceNotFoundError } from "./errors.js";
-import baseStrategyAbi from "./contracts/BaseStrategy.json";
-import controllerAbi from "./contracts/Controller.json";
-import erc20Abi from "./contracts/ERC20.json";
-import settV4Abi from "./contracts/SettV4.json";
+import baseStrategyAbi from "./contracts/BaseStrategy.json" assert { type: "json" };
+import controllerAbi from "./contracts/Controller.json" assert { type: "json" };
+import erc20Abi from "./contracts/ERC20.json" assert { type: "json" };
+import settV4Abi from "./contracts/SettV4.json" assert { type: "json" };
 
 export const getFileName = (fpath) => basename(fpath, extname(fpath));
 

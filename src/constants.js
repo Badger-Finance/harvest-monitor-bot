@@ -1,8 +1,8 @@
 // Exchange interfaces
 // TODO: Maybe load dynamically
-import curvePoolAbi from "./contracts/CurvePool.json";
-import uniswapV2PairAbi from "./contracts/UniswapV2Pair.json";
-import uniswapV3PoolAbi from "./contracts/UniswapV3Pool.json";
+import curvePoolAbi from "./contracts/CurvePool.json" assert { type: "json" };
+import uniswapV2PairAbi from "./contracts/UniswapV2Pair.json" assert { type: "json" };
+import uniswapV3PoolAbi from "./contracts/UniswapV3Pool.json" assert { type: "json" };
 
 // Discord variables
 export const CLIENT_ID = "885785028058034246";

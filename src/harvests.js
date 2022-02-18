@@ -18,8 +18,8 @@ import {
   isActiveStrategy,
 } from "./utils.js";
 
-import keeperAccessControlAbi from "./contracts/KeeperAccessControl.json";
-import STRATEGY_METADATA from "./data/strategy-metadata.json";
+import keeperAccessControlAbi from "./contracts/KeeperAccessControl.json" assert { type: "json" };
+import STRATEGY_METADATA from "./data/strategy-metadata.json" assert { type: "json" };
 
 const filterLatestHarvestTxs = async (
   txs,
