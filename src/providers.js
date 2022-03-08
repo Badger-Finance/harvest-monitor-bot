@@ -1,7 +1,8 @@
 import { Logger } from "@ethersproject/logger";
 import { InfuraProvider as BaseInfuraProvider } from "@ethersproject/providers";
 import { Web3Provider as EthersWeb3Provider } from "@ethersproject/providers";
-import { Web3HttpProvider } from "web3-providers-http";
+
+import Web3HttpProvider from "web3-providers-http";
 
 const logger = new Logger("providers/5.4.5");
 
