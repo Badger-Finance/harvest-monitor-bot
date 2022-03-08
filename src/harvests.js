@@ -5,9 +5,14 @@ import { Interface } from "@ethersproject/abi";
 
 import AsciiTable from "ascii-table";
 
-import { CHAIN_CONFIG, EXCHANGE_CONFIGS, HARVEST_FNS } from "./constants.js";
+import {
+  CHAIN_CONFIG,
+  CHAIN_IDS,
+  EXCHANGE_CONFIGS,
+  HARVEST_FNS,
+} from "./constants.js";
 import { PriceNotFoundError } from "./errors.js";
-import { InfuraProvider } from "./providers.js";
+import { InfuraProvider, FtmProvider } from "./providers.js";
 import {
   formatCurrency,
   formatMs,
@@ -144,13 +149,16 @@ export const getHarvestTables = async (chainIds) => {
   const chainTables = await Promise.all(
     chainIds.map(async (chainId) => {
       const chainConfig = CHAIN_CONFIG[chainId];
-      const provider = new InfuraProvider(
-        {
-          name: chainConfig.name,
-          chainId,
-        },
-        process.env.INFURA_PROJECT_ID
-      );
+      const provider =
+        chainId === CHAIN_IDS.FANTOM
+          ? FtmProvider
+          : new InfuraProvider(
+              {
+              name: chainConfig.name,
+              chainId,
+              },
+            process.env.INFURA_PROJECT_ID
+          );
 
       // TODO: This is temporary till all strats emit a Harvest event
       //       Use an event filter when the event is added
