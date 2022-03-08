@@ -167,7 +167,8 @@ export const getPoolName = async (address, exchangeType, provider) => {
     return await poolContract.symbol();
   } else if (
     exchangeType === EXCHANGE_TYPES.UNISWAP_V2 ||
-    exchangeType === EXCHANGE_TYPES.UNISWAP_V3
+    exchangeType === EXCHANGE_TYPES.UNISWAP_V3 ||
+    exchangeType === EXCHANGE_TYPES.SOLIDLY
   ) {
     const token0 = await poolContract.token0();
     const token1 = await poolContract.token1();
@@ -214,7 +215,8 @@ export const getPoolTVL = async (address, exchangeType, provider, chainId) => {
     }
   } else if (
     exchangeType === EXCHANGE_TYPES.UNISWAP_V2 ||
-    exchangeType === EXCHANGE_TYPES.UNISWAP_V3
+    exchangeType === EXCHANGE_TYPES.UNISWAP_V3 ||
+    exchangeType === EXCHANGE_TYPES.SOLIDLY
   ) {
     const tokenAddresses = [
       await poolContract.token0(),
