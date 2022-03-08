@@ -1,6 +1,7 @@
 // Exchange interfaces
 // TODO: Maybe load dynamically
 import curvePoolAbi from "./contracts/CurvePool.json" assert { type: "json" };
+import solidlyV1PairAbi from "./contracts/SolidlyV1Pair.json" assert { type: "json" };
 import uniswapV2PairAbi from "./contracts/UniswapV2Pair.json" assert { type: "json" };
 import uniswapV3PoolAbi from "./contracts/UniswapV3Pool.json" assert { type: "json" };
 
@@ -15,6 +16,7 @@ export const HARVEST_FNS = ["harvest", "harvestNoReturn"];
 export const CHAIN_IDS = {
   ETHEREUM: 1,
   ARBITRUM: 42161,
+  FANTOM: 250,
 };
 
 export const CHAIN_CONFIG = {
@@ -35,6 +37,14 @@ export const CHAIN_CONFIG = {
     apiToken: process.env.ETHERSCAN_TOKEN, // No arbiscan token yet
     keeperAcl: "0x265820f3779f652f2a9857133fdeaf115b87db4b",
   },
+  [CHAIN_IDS.FANTOM]: {
+    chainId: CHAIN_IDS.FANTOM,
+    name: "fantom",
+    displayName: "Fantom",
+    api: "https://api.ftmscan.com/api",
+    apiToken: process.env.FTMSCAN_TOKEN, // No arbiscan token yet
+    keeperAcl: "0x0680b32b52C5ca8C731490c0C576337058f39337",
+  },
 };
 
 // Ideally enum
@@ -42,6 +52,7 @@ export const EXCHANGE_TYPES = {
   UNISWAP_V2: "UniswapV2",
   CURVE: "Curve",
   UNISWAP_V3: "UniswapV3",
+  SOLIDLY: "Solidly",
 };
 
 export const EXCHANGE_CONFIGS = {
@@ -55,6 +66,10 @@ export const EXCHANGE_CONFIGS = {
   },
   [EXCHANGE_TYPES.UNISWAP_V3]: {
     abi: uniswapV3PoolAbi,
+    swapEvent: "Swap",
+  },
+  [EXCHANGE_TYPES.SOLIDLY]: {
+    abi: solidlyV1PairAbi,
     swapEvent: "Swap",
   },
 };
