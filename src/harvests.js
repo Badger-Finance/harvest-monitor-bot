@@ -212,6 +212,7 @@ export const getHarvestTables = async (chainIds) => {
       return {
         harvests: codeBlock(harvestTable),
         pools: codeBlock(poolsTable),
+        name: chainConfig.displayName,
       };
     })
   );
@@ -219,8 +220,13 @@ export const getHarvestTables = async (chainIds) => {
     new Date().toUTCString()
   )}\n`;
   return {
-    harvests:
-      chainTables.map((tables) => tables.harvests).join("\n") + lastUpdated,
-    pools: chainTables.map((tables) => tables.pools).join("\n") + lastUpdated,
+    harvests: chainTables.map((tables) => ({
+      name: tables.name,
+      table: tables.harvests + "\n" + lastUpdated,
+    })),
+    pools: chainTables.map((tables) => ({
+      name: tables.name,
+      table: tables.pools + "\n" + lastUpdated,
+    })),
   };
 };
