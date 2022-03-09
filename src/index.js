@@ -1,7 +1,8 @@
 import { Client, Intents } from "discord.js";
 
-import { GUILD_ID, CHANNEL_ID, CHAIN_IDS } from "./constants.js";
+import { GUILD_ID, CHANNEL_ID, CHAIN_CONFIG, CHAIN_IDS } from "./constants.js";
 import { getHarvestTables } from "./harvests.js";
+import { editMessages } from "./utils.js";
 
 const client = new Client({ intents: [Intents.FLAGS.GUILDS] });
 
@@ -12,16 +13,17 @@ client.once("ready", async () => {
   const payloads = await getHarvestTables(Object.values(CHAIN_IDS));
   // TODO: Don't actually need pinned messages
   const pinnedMessages = await channel.messages.fetchPinned();
-  const messages = await pinnedMessages.last(2);
+  const messages = await pinnedMessages.last(6);
   if (messages.length === 0) {
-    await channel.send(payloads.pools);
-    await channel.send(payloads.harvests);
-  } else if (messages.length === 1) {
-    await messages[0].edit(payloads.pools);
-    await channel.send(payloads.harvests);
+    for (const chainMessage of payloads.harvests) {
+      await channel.send(chainMessage.table);
+    }
+    for (const chainMessage of payloads.pools) {
+      await channel.send(chainMessage.table);
+    }
   } else {
-    await messages[1].edit(payloads.pools);
-    await messages[0].edit(payloads.harvests);
+    await editMessages(payloads.harvests, messages.slice(0, 3));
+    await editMessages(payloads.pools, messages.slice(3));
   }
   console.log("Done!");
   client.destroy();
