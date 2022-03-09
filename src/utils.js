@@ -3,7 +3,12 @@ import fs from "fs";
 import fetch from "node-fetch";
 import { basename, extname } from "path";
 
-import { CHAIN_CONFIG, CHAIN_IDS, EXCHANGE_CONFIGS, EXCHANGE_TYPES } from "./constants.js";
+import {
+  CHAIN_CONFIG,
+  CHAIN_IDS,
+  EXCHANGE_CONFIGS,
+  EXCHANGE_TYPES,
+} from "./constants.js";
 import { HTTPResponseError, PriceNotFoundError } from "./errors.js";
 import baseStrategyAbi from "./contracts/BaseStrategy.json" assert { type: "json" };
 import controllerAbi from "./contracts/Controller.json" assert { type: "json" };

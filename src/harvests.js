@@ -221,11 +221,11 @@ export const getHarvestTables = async (chainIds) => {
   )}\n`;
   return {
     harvests: chainTables.map((tables) => ({
-      name: tables.displayName,
+      name: tables.name,
       table: tables.harvests + "\n" + lastUpdated,
     })),
     pools: chainTables.map((tables) => ({
-      name: tables.displayName,
+      name: tables.name,
       table: tables.pools + "\n" + lastUpdated,
     })),
   };
