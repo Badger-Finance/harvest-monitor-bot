@@ -153,12 +153,12 @@ export const getHarvestTables = async (chainIds) => {
         chainId === CHAIN_IDS.FANTOM
           ? FtmProvider
           : new InfuraProvider(
-              {
-              name: chainConfig.name,
-              chainId,
-              },
-            process.env.INFURA_PROJECT_ID
-          );
+          {
+            name: chainConfig.name,
+            chainId,
+          },
+          process.env.INFURA_PROJECT_ID
+        );
 
       // TODO: This is temporary till all strats emit a Harvest event
       //       Use an event filter when the event is added

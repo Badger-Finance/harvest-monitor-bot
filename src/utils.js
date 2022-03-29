@@ -14,6 +14,8 @@ import baseStrategyAbi from "./contracts/BaseStrategy.json" assert { type: "json
 import controllerAbi from "./contracts/Controller.json" assert { type: "json" };
 import erc20Abi from "./contracts/ERC20.json" assert { type: "json" };
 import settV4Abi from "./contracts/SettV4.json" assert { type: "json" };
+import vaultV1_5Abi from "./contracts/VaultV1_5.json" assert { type: "json" };
+import v1_5StrategyAbi from "./contracts/StrategyV1_5.json" assert { type: "json" };
 
 export const getFileName = (fpath) => basename(fpath, extname(fpath));
 
@@ -89,19 +91,48 @@ export const getTokenPrice = async (address, chainId, currency = "usd") => {
 };
 
 export const isActiveStrategy = async (address, provider) => {
-  const strategyContract = new Contract(address, baseStrategyAbi, provider);
-  const controllerContract = new Contract(
-    await strategyContract.controller(),
-    controllerAbi,
-    provider
-  );
-  const want = await strategyContract.want();
-  const controllerStrategy = await controllerContract.strategies(want);
-  return address === controllerStrategy;
+  try {
+    const strategyContract = new Contract(address, baseStrategyAbi, provider);
+    const controllerContract = new Contract(
+      await strategyContract.controller(),
+      controllerAbi,
+      provider
+    );
+    const want = await strategyContract.want();
+    const controllerStrategy = await controllerContract.strategies(want);
+    return address === controllerStrategy;
+  } catch (error) {
+    const strategyContractV1_5 = new Contract(
+      address,
+      v1_5StrategyAbi,
+      provider
+    );
+    const vaultAddress = strategyContractV1_5.vault();
+    const vaultStrategyContract = new Contract(
+      vaultAddress,
+      vaultV1_5Abi,
+      provider
+    );
+    const vaultStrategyAddress = vaultStrategyContract.strategy();
+    return address === vaultStrategyAddress;
+  }
 };
 
 export const getStrategyMetadata = async (address, provider) => {
-  const strategyContract = new Contract(address, baseStrategyAbi, provider);
+  try {
+    const strategyContract = new Contract(address, baseStrategyAbi, provider);
+    return await getStrategyMetadataV1(provider, strategyContract);
+  } catch (error) {
+    const strategyContractV1_5 = new Contract(
+      address,
+      v1_5StrategyAbi,
+      provider
+    );
+    return await getStrategyMetadataV1_5(provider, strategyContractV1_5);
+  }
+};
+
+export const getStrategyMetadataV1 = async (provider, strategyContract) => {
   const controllerContract = new Contract(
     await strategyContract.controller(),
     controllerAbi,
@@ -111,6 +142,25 @@ export const getStrategyMetadata = async (address, provider) => {
   const vaultContract = new Contract(
     await controllerContract.vaults(want),
     settV4Abi,
+    provider
+  );
+  const nameFull = await strategyContract.getName();
+  const vaultNameFull = await vaultContract.name();
+  return {
+    name: nameFull.replace("Strategy", ""),
+    nameFull,
+    vaultName: vaultNameFull.replace("Badger Sett ", ""),
+    vaultNameFull,
+    vault: vaultContract.address,
+    want,
+  };
+};
+
+export const getStrategyMetadataV1_5 = async (provider, strategyContract) => {
+  const want = await strategyContract.want();
+  const vaultContract = new Contract(
+    await strategyContract.vault(),
+    vaultV1_5Abi,
     provider
   );
   const nameFull = await strategyContract.getName();
