@@ -113,7 +113,7 @@ export const isActiveStrategy = async (address, provider) => {
       vaultV1_5Abi,
       provider
     );
-    const vaultStrategyAddress = vaultStrategyContract.strategy();
+    const vaultStrategyAddress = await vaultStrategyContract.strategy();
     return address === vaultStrategyAddress;
   }
 };
