@@ -460,5 +460,12 @@
     "name": "totalSupply",
     "inputs": [],
     "outputs": [{ "name": "", "type": "uint256" }]
+  },
+  {
+    "stateMutability": "view",
+    "type": "function",
+    "name": "lp_token",
+    "inputs": [],
+    "outputs": [{ "name": "", "type": "address" }]
   }
 ]

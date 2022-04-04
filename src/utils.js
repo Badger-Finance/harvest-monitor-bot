@@ -15,7 +15,7 @@ import controllerAbi from "./contracts/Controller.json" assert { type: "json" };
 import erc20Abi from "./contracts/ERC20.json" assert { type: "json" };
 import settV4Abi from "./contracts/SettV4.json" assert { type: "json" };
 import vaultV1_5Abi from "./contracts/VaultV1_5.json" assert { type: "json" };
-import v1_5StrategyAbi from "./contracts/StrategyV1_5.json" assert { type: "json" };
+import StrategyV1_5Abi from "./contracts/StrategyV1_5.json" assert { type: "json" };
 
 export const getFileName = (fpath) => basename(fpath, extname(fpath));
 
@@ -91,20 +91,12 @@ export const getTokenPrice = async (address, chainId, currency = "usd") => {
 };
 
 export const isActiveStrategy = async (address, provider) => {
-  try {
-    const strategyContract = new Contract(address, baseStrategyAbi, provider);
-    const controllerContract = new Contract(
-      await strategyContract.controller(),
-      controllerAbi,
-      provider
-    );
-    const want = await strategyContract.want();
-    const controllerStrategy = await controllerContract.strategies(want);
-    return address === controllerStrategy;
-  } catch (error) {
+  const strategyContract = new Contract(address, baseStrategyAbi, provider);
+  const baseVersion = await strategyContract.baseStrategyVersion();
+  if (baseVersion == "1.5") {
     const strategyContractV1_5 = new Contract(
       address,
-      v1_5StrategyAbi,
+      StrategyV1_5Abi,
       provider
     );
     const vaultAddress = strategyContractV1_5.vault();
@@ -115,6 +107,15 @@ export const isActiveStrategy = async (address, provider) => {
     );
     const vaultStrategyAddress = await vaultStrategyContract.strategy();
     return address === vaultStrategyAddress;
+  } else {
+    const controllerContract = new Contract(
+      await strategyContract.controller(),
+      controllerAbi,
+      provider
+    );
+    const want = await strategyContract.want();
+    const controllerStrategy = await controllerContract.strategies(want);
+    return address === controllerStrategy;
   }
 };
 
@@ -219,7 +220,13 @@ export const getPoolName = async (address, exchangeType, provider) => {
   );
 
   if (exchangeType === EXCHANGE_TYPES.CURVE) {
-    return await poolContract.symbol();
+    try {
+      const lpToken = await poolContract.lp_token();
+      const lpTokenContract = new Contract(lpToken, erc20Abi, provider);
+      return await lpTokenContract.symbol();
+    } catch (error) {
+      return await poolContract.symbol();
+    }
   } else if (
     exchangeType === EXCHANGE_TYPES.UNISWAP_V2 ||
     exchangeType === EXCHANGE_TYPES.UNISWAP_V3 ||

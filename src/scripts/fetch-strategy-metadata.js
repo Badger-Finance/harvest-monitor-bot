@@ -1,8 +1,8 @@
 import { getAddress } from "@ethersproject/address";
 import { Contract } from "@ethersproject/contracts";
+import { JsonRpcProvider } from "@ethersproject/providers";
 
 import { CHAIN_CONFIG, CHAIN_IDS, HARVEST_FNS } from "../constants.js";
-import { InfuraProvider } from "../providers.js";
 import {
   getStrategyMetadata,
   getTransactions,
@@ -42,13 +42,7 @@ const fetchStrategyMetadataForChains = async (chainIds) => {
   const strategyMetadata = {};
   for (const chainId of chainIds) {
     const chainConfig = CHAIN_CONFIG[chainId];
-    const provider = new InfuraProvider(
-      {
-        name: chainConfig.name,
-        chainId,
-      },
-      process.env.INFURA_PROJECT_ID
-    );
+    const provider = new JsonRpcProvider(chainConfig.rpc);
 
     const startBlock = Number.isFinite(chainConfig.lookbackBlocks)
       ? (await provider.getBlockNumber()) - chainConfig.lookbackBlocks

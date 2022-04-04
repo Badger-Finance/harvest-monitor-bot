@@ -28,6 +28,7 @@ export const CHAIN_CONFIG = {
     apiToken: process.env.ETHERSCAN_TOKEN,
     keeperAcl: "0x711A339c002386f9db409cA55b6A35a604aB6cF6",
     blacklistedStrategies: ["0x05eC4356e1acd89CC2d16adC7415c8c95E736AC1"],
+    rpc: `https://mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
   },
   [CHAIN_IDS.ARBITRUM]: {
     chainId: CHAIN_IDS.ARBITRUM,
@@ -36,6 +37,7 @@ export const CHAIN_CONFIG = {
     api: "https://api.arbiscan.io/api",
     apiToken: process.env.ETHERSCAN_TOKEN, // No arbiscan token yet
     keeperAcl: "0x265820f3779f652f2a9857133fdeaf115b87db4b",
+    rpc: `https://arbitrum-mainnet.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
   },
   [CHAIN_IDS.FANTOM]: {
     chainId: CHAIN_IDS.FANTOM,
@@ -44,6 +46,7 @@ export const CHAIN_CONFIG = {
     api: "https://api.ftmscan.com/api",
     apiToken: process.env.FTMSCAN_TOKEN, // No arbiscan token yet
     keeperAcl: "0x0680b32b52C5ca8C731490c0C576337058f39337",
+    rpc: "https://rpc.ftm.tools",
   },
 };
 
