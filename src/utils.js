@@ -15,7 +15,7 @@ import controllerAbi from "./contracts/Controller.json" assert { type: "json" };
 import erc20Abi from "./contracts/ERC20.json" assert { type: "json" };
 import settV4Abi from "./contracts/SettV4.json" assert { type: "json" };
 import vaultV1_5Abi from "./contracts/VaultV1_5.json" assert { type: "json" };
-import StrategyV1_5Abi from "./contracts/StrategyV1_5.json" assert { type: "json" };
+import strategyV1_5Abi from "./contracts/StrategyV1_5.json" assert { type: "json" };
 
 export const getFileName = (fpath) => basename(fpath, extname(fpath));
 
@@ -96,7 +96,7 @@ export const isActiveStrategy = async (address, provider) => {
   if (baseVersion == "1.5") {
     const strategyContractV1_5 = new Contract(
       address,
-      StrategyV1_5Abi,
+      strategyV1_5Abi,
       provider
     );
     const vaultAddress = strategyContractV1_5.vault();
@@ -126,7 +126,7 @@ export const getStrategyMetadata = async (address, provider) => {
   } catch (error) {
     const strategyContractV1_5 = new Contract(
       address,
-      v1_5StrategyAbi,
+      strategyV1_5Abi,
       provider
     );
     return await getStrategyMetadataV1_5(provider, strategyContractV1_5);
