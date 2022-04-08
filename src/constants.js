@@ -1,7 +1,6 @@
 // Exchange interfaces
 // TODO: Maybe load dynamically
 import curvePoolAbi from "./contracts/CurvePool.json" assert { type: "json" };
-import solidlyV1PairAbi from "./contracts/SolidlyV1Pair.json" assert { type: "json" };
 import uniswapV2PairAbi from "./contracts/UniswapV2Pair.json" assert { type: "json" };
 import uniswapV3PoolAbi from "./contracts/UniswapV3Pool.json" assert { type: "json" };
 
@@ -52,27 +51,22 @@ export const CHAIN_CONFIG = {
 
 // Ideally enum
 export const EXCHANGE_TYPES = {
-  UNISWAP_V2: "UniswapV2",
-  CURVE: "Curve",
-  UNISWAP_V3: "UniswapV3",
-  SOLIDLY: "Solidly",
+  UNISWAP_V2_LIKE: "UniswapV2", // Includes Sushi, Solidly etc.
+  CURVE_LIKE: "Curve",
+  UNISWAP_V3_LIKE: "UniswapV3",
 };
 
 export const EXCHANGE_CONFIGS = {
-  [EXCHANGE_TYPES.CURVE]: {
+  [EXCHANGE_TYPES.CURVE_LIKE]: {
     abi: curvePoolAbi,
     swapEvent: "TokenExchange",
   },
-  [EXCHANGE_TYPES.UNISWAP_V2]: {
+  [EXCHANGE_TYPES.UNISWAP_V2_LIKE]: {
     abi: uniswapV2PairAbi,
     swapEvent: "Swap",
   },
-  [EXCHANGE_TYPES.UNISWAP_V3]: {
+  [EXCHANGE_TYPES.UNISWAP_V3_LIKE]: {
     abi: uniswapV3PoolAbi,
-    swapEvent: "Swap",
-  },
-  [EXCHANGE_TYPES.SOLIDLY]: {
-    abi: solidlyV1PairAbi,
     swapEvent: "Swap",
   },
 };

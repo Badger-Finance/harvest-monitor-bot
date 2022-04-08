@@ -219,7 +219,7 @@ export const getPoolName = async (address, exchangeType, provider) => {
     provider
   );
 
-  if (exchangeType === EXCHANGE_TYPES.CURVE) {
+  if (exchangeType === EXCHANGE_TYPES.CURVE_LIKE) {
     try {
       const lpToken = await poolContract.lp_token();
       const lpTokenContract = new Contract(lpToken, erc20Abi, provider);
@@ -228,9 +228,8 @@ export const getPoolName = async (address, exchangeType, provider) => {
       return await poolContract.symbol();
     }
   } else if (
-    exchangeType === EXCHANGE_TYPES.UNISWAP_V2 ||
-    exchangeType === EXCHANGE_TYPES.UNISWAP_V3 ||
-    exchangeType === EXCHANGE_TYPES.SOLIDLY
+    exchangeType === EXCHANGE_TYPES.UNISWAP_V2_LIKE ||
+    exchangeType === EXCHANGE_TYPES.UNISWAP_V3_LIKE
   ) {
     const token0 = await poolContract.token0();
     const token1 = await poolContract.token1();
@@ -258,7 +257,7 @@ export const getPoolTVL = async (address, exchangeType, provider, chainId) => {
   );
   const tokens = [];
 
-  if (exchangeType === EXCHANGE_TYPES.CURVE) {
+  if (exchangeType === EXCHANGE_TYPES.CURVE_LIKE) {
     for (let i = 0; ; i++) {
       let tokenAddress;
       try {
@@ -276,9 +275,8 @@ export const getPoolTVL = async (address, exchangeType, provider, chainId) => {
       });
     }
   } else if (
-    exchangeType === EXCHANGE_TYPES.UNISWAP_V2 ||
-    exchangeType === EXCHANGE_TYPES.UNISWAP_V3 ||
-    exchangeType === EXCHANGE_TYPES.SOLIDLY
+    exchangeType === EXCHANGE_TYPES.UNISWAP_V2_LIKE ||
+    exchangeType === EXCHANGE_TYPES.UNISWAP_V3_LIKE
   ) {
     const tokenAddresses = [
       await poolContract.token0(),
